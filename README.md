@@ -4,12 +4,6 @@ This demo allows you to try out semantic segmentation on a couple of preset imag
 
 ## Setup
 
-Change the directory to the `demo` folder:
-
-```sh
-cd deeplab/demo
-```
-
 Install dependencies:
 
 ```sh
