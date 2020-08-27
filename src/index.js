@@ -157,10 +157,6 @@ const displaySegmentationMap = (modelName, deeplabOutput) => {
   const ctx = canvas.getContext('2d');
   toggleInvisible('output-card', false);
   const segmentationMapData = new ImageData(segmentationMap, width, height);
-  var data = ctx.getImageData(10, 10, 1, 1).data;
-  var rgb = [ data[0], data[1], data[2] ];
-  window.alert(rgb);
-  window.alert(data[0]);
   canvas.style.width = '100%';
   canvas.style.height = '100%';
   canvas.width = width;
