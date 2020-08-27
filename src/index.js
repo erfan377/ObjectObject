@@ -53,7 +53,8 @@ const initializeModels = async () => {
     state.quantizationBytes = quantizationBytes;
     deeplab[base] = load({base, quantizationBytes});
     const toggler = document.getElementById(`toggle-${base}-image`);
-    toggler.onclick = () => setImage(deeplabExampleImages[base]);
+    toggler.onclick = () => findonlineImage();
+    readSegmentation();
     const runner = document.getElementById(`run-${base}`);
     runner.onclick = () => {
       toggleInvisible('output-card', true);
@@ -90,6 +91,42 @@ const processImage = (file) => {
 const processImages = (event) => {
   const files = event.target.files;
   Array.from(files).forEach(processImage);
+};
+
+function getElementPosition(obj) {
+  var curleft = 0, curtop = 0;
+  if (obj.offsetParent) {
+      do {
+          curleft += obj.offsetLeft;
+          curtop += obj.offsetTop;
+      } while (obj = obj.offsetParent);
+      return { x: curleft, y: curtop };
+  }
+  return undefined;
+}
+
+function getEventLocation(element,event){
+  var pos = getElementPosition(element);
+  
+  return {
+    x: (event.pageX - pos.x),
+      y: (event.pageY - pos.y)
+  };
+}
+
+const readSegmentation = () => {
+  $('#output-image').click(function(e){
+    var eventLocation = getEventLocation(this,e);
+    var canvas = this.getContext('2d');
+    var pixelData = canvas.getImageData(eventLocation.x, eventLocation.y, 1, 1).data; 
+    var rgb = [ pixelData[0], pixelData[1], pixelData[2] ];
+    findLabel(rgb);
+  });
+}
+
+const findLabel = (rgbVal) => {
+  const labelName = dictRgbLabel[rgbVal];
+  findonlineImage(labelName);
 };
 
 const findonlineImage = (keyword) => {
