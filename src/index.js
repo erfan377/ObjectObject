@@ -28,6 +28,7 @@ const modelNames = ['pascal', 'cityscapes', 'ade20k'];
 const deeplab = {};
 const state = {};
 var dictRgbLabel = {};
+//default pre-trained database
 var globalBase = 'pascal';
 
 const deeplabExampleImages = {
@@ -40,7 +41,7 @@ const toggleInvisible = (elementId, force = undefined) => {
   const outputContainer = document.getElementById(elementId);
   outputContainer.classList.toggle('is-invisible', force);
 };
-
+//asynchronous function for running deeplab faster
 const runModel = async (base) => {
   await tf.nextFrame();
   await runDeeplab(base);
@@ -54,9 +55,11 @@ const initializeModels = async () => {
     state.quantizationBytes = quantizationBytes;
     deeplab[base] = load({base, quantizationBytes});
     const toggler = document.getElementById(`toggle-${base}-image`);
-    toggler.onclick = () => findonlineImage();
-    readSegmentation();
+    //waiting for click scrape first image
+    toggler.onclick = () => fetchImage();
+    autoSegment(); //running segmentation automatically
     const runner = document.getElementById(`run-${base}`);
+    //waits for user to choose type of pre-trained weights and run model
     runner.onclick = () => {
       toggleInvisible('output-card', true);
       toggleInvisible('legend-card', true);
@@ -64,11 +67,13 @@ const initializeModels = async () => {
       globalBase = base;
     };
   });
+  //user upload their desired picture for segmentation
   const uploader = document.getElementById('upload-image');
   uploader.addEventListener('change', processImages);
   status('Initialised models, waiting for input...');
 };
 
+//display image on the HTML
 const setImage = (src) => {
   toggleInvisible('output-card', true);
   toggleInvisible('legend-card', true);
@@ -94,6 +99,7 @@ const processImages = (event) => {
   Array.from(files).forEach(processImage);
 };
 
+//Read click location on object relative to offsetParent element
 function getElementPosition(obj) {
   var curleft = 0, curtop = 0;
   if (obj.offsetParent) {
@@ -106,6 +112,7 @@ function getElementPosition(obj) {
   return undefined;
 }
 
+// calculate click location on image
 function getEventLocation(element,event){
   var pos = getElementPosition(element);
   
@@ -115,7 +122,8 @@ function getEventLocation(element,event){
   };
 }
 
-const readSegmentation = () => {
+// extract RGB of clicked location and searches for clicked label
+const autoSegment = () => {
   $('#output-image').click(function(e){
     var eventLocation = getEventLocation(this,e);
     var canvas = this.getContext('2d');
@@ -125,12 +133,16 @@ const readSegmentation = () => {
   });
 }
 
+//find label based on RGB from map of RGB values to labels 
+// and fetch image based on label
 const findLabel = (rgbVal) => {
   const labelName = dictRgbLabel[rgbVal];
-  findonlineImage(labelName);
+  fetchImage(labelName);
 };
 
-const findonlineImage = (keyword) => {
+//script to scrape JSON from Flicker API and display one image randomly
+//limit is 20 calls per request
+const fetchImage = (keyword) => {
   let display;
   var flickerAPI = "http://api.flickr.com/services/feeds/photos_public.gne?jsoncallback=?";
   $.getJSON(flickerAPI, {
@@ -151,11 +163,13 @@ const findonlineImage = (keyword) => {
   });
 };
 
+//function to display segmentation of input image
 const displaySegmentationMap = (modelName, deeplabOutput) => {
   const {legend, height, width, segmentationMap} = deeplabOutput;
   const canvas = document.getElementById('output-image');
   const ctx = canvas.getContext('2d');
   toggleInvisible('output-card', false);
+  //display segmentation results on canvas
   const segmentationMapData = new ImageData(segmentationMap, width, height);
   canvas.style.width = '100%';
   canvas.style.height = '100%';
@@ -167,11 +181,11 @@ const displaySegmentationMap = (modelName, deeplabOutput) => {
   while (legendList.firstChild) {
     legendList.removeChild(legendList.firstChild);
   }
-
+  //create legend for detected labels
   Object.keys(legend).forEach((label) => {
     const tag = document.createElement('span');
     tag.innerHTML = label;
-    var labelColor = legend[label]; 
+    var labelColor = legend[label]; //store map of RGB values to labels
     const [red, green, blue] = labelColor;
     dictRgbLabel[labelColor] = label;
     tag.classList.add('column');
@@ -195,6 +209,7 @@ const status = (message) => {
   console.log(message);
 };
 
+//Run segmentation on the input based on selected weights
 const runPrediction = (modelName, input, initialisationStart) => {
   deeplab[modelName].then((model) => {
     model.segment(input).then((output) => {
@@ -205,8 +220,10 @@ const runPrediction = (modelName, input, initialisationStart) => {
   });
 };
 
+//asynchronous function to load DeepLab  
 const runDeeplab = async (modelName) => {
   status(`Running the inference...`);
+  //determines the quality of segmentation
   const selector = document.getElementById('quantizationBytes');
   const quantizationBytes =
       Number(selector.options[selector.selectedIndex].text);
