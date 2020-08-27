@@ -1,6 +1,9 @@
-# DeepLab Demo
+# Object Object Demo
+### This project is under development
 
-This demo allows you to try out semantic segmentation on a couple of preset images using different base models.
+This demo allows you to try out DeepLab V3 semantic segmentation on images from the Flickr database using different pre-trained model based on MobileNet-v2. Three types of pre-trained weights are available, trained on Pascal, Cityscapes and ADE20K datasets.
+
+To get started, load a random example image, and pick the model name from `pascal`, `cityscapes` and `ade20k`, and decide whether you want your model quantized to 1 or 2 bytes (set the quantizationBytes option to 4 if you want to disable quantization). By default, calling load initalizes the PASCAL variant of the model quantized to 2 bytes. You can change the model and the quanitization at any given point by clicking `Run` from any of the provided models, and you can re-load a random image by clicking on `Load an example image. 
 
 ## Setup
 
@@ -17,46 +20,7 @@ yarn watch
 ```
 
 **Warning**: *Running the Cityscapes model in the demo is resource-intensive and might crash your browser.*
+**Tip**: *For better segmentation use `ade20k` model.*
 
-## Development
-
-If you are developing the model locally and want to test the changes in the demo, proceed as follows:
-
-### Change the directory to the `deeplab` folder
-
-```sh
-cd deeplab
-```
-
-### Install dependencies
-
-```sh
-yarn
-```
-
-### Publish a local copy of deeplab
-
-```sh
-yarn publish-local
-```
-
-### Change into the demo directory (`deeplab/demo`) and install dependencies
-
-```sh
-cd demo
-yarn
-```
-
-### Link the package published from the publish step above
-
-```sh
-yarn link-local
-```
-
-### Start the dev demo server
-
-```sh
-yarn watch
-```
-
-**Note**: *To get future updates from the `deeplab` source code, just run `yarn publish-local` in the `deeplab` folder again.*
+**Reference**: [Semantic Segmentation in the Browser: DeepLab v3 Model
+](https://github.com/tensorflow/tfjs-models/tree/master/deeplab)
