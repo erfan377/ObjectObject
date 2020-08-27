@@ -27,6 +27,7 @@ import pascalExampleImage from './examples/pascal.jpg';
 const modelNames = ['pascal', 'cityscapes', 'ade20k'];
 const deeplab = {};
 const state = {};
+var globalBase = 'pascal';
 
 const deeplabExampleImages = {
   pascal: pascalExampleImage,
@@ -39,6 +40,11 @@ const toggleInvisible = (elementId, force = undefined) => {
   outputContainer.classList.toggle('is-invisible', force);
 };
 
+const runModel = async (base) => {
+  await tf.nextFrame();
+  await runDeeplab(base);
+};
+
 const initializeModels = async () => {
   modelNames.forEach((base) => {
     const selector = document.getElementById('quantizationBytes');
@@ -49,11 +55,11 @@ const initializeModels = async () => {
     const toggler = document.getElementById(`toggle-${base}-image`);
     toggler.onclick = () => setImage(deeplabExampleImages[base]);
     const runner = document.getElementById(`run-${base}`);
-    runner.onclick = async () => {
+    runner.onclick = () => {
       toggleInvisible('output-card', true);
       toggleInvisible('legend-card', true);
-      await tf.nextFrame();
-      await runDeeplab(base);
+      runModel(base);
+      globalBase = base;
     };
   });
   const uploader = document.getElementById('upload-image');
