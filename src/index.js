@@ -28,8 +28,8 @@ const modelNames = ['pascal', 'cityscapes', 'ade20k'];
 const deeplab = {};
 const state = {};
 var dictRgbLabel = {};
-var savej = [];
 var globalBase = 'pascal';
+
 const deeplabExampleImages = {
   pascal: pascalExampleImage,
   cityscapes: cityscapesExampleImage,
@@ -42,9 +42,10 @@ const toggleInvisible = (elementId, force = undefined) => {
 };
 
 const runModel = async (base) => {
-    await tf.nextFrame();
-    await runDeeplab(base);
+  await tf.nextFrame();
+  await runDeeplab(base);
 };
+
 const initializeModels = async () => {
   modelNames.forEach((base) => {
     const selector = document.getElementById('quantizationBytes');
@@ -61,8 +62,7 @@ const initializeModels = async () => {
       toggleInvisible('legend-card', true);
       runModel(base);
       globalBase = base;
-      toggleInvisible('input-card', false);
-    }
+    };
   });
   const uploader = document.getElementById('upload-image');
   uploader.addEventListener('change', processImages);
@@ -77,7 +77,6 @@ const setImage = (src) => {
   toggleInvisible('input-card', false);
   status('Waiting until the model is picked...');
 };
-
 
 const processImage = (file) => {
   if (!file.type.match('image.*')) {
@@ -116,75 +115,20 @@ function getEventLocation(element,event){
   };
 }
 
-// const pixelData = () => {
-//   var canvas = document.getElementById('output-image');
-//   canvas.addEventListener('click', printMousePos, true);
-//   function printMousePos(e){
-//     var eventLocation = getEventLocation(this,e);
-//     var context = this.getContext('2d');
-//     console.log(eventLocation);
-//     var pixelData = context.getImageData(eventLocation.x, eventLocation.y, 1, 1).data; 
-//     var rgb = [ pixelData[0], pixelData[1], pixelData[2] ];
-//     console.log(rgb);
-//     //window.alert(rgb);
-//     findLabel(rgb);
-//     //$( "#test" ).text( "pageX: " + cursorX +",pageY: " + cursorY );
-//   }
-// }
-
-// const pixelData = () => {
-//   $('#output-image').click(function(e){
-//     var eventLocation = getEventLocation(this,e);
-//     var canvas = this.getContext('2d');
-//     console.log(eventLocation);
-//     var pixelData = canvas.getImageData(eventLocation.x, eventLocation.y, 1, 1).data; 
-//     var rgb = [ pixelData[0], pixelData[1], pixelData[2] ];
-//     console.log(rgb);
-//     //window.alert(rgb);
-//     findLabel(rgb);
-//     //$( "#test" ).text( "pageX: " + cursorX +",pageY: " + cursorY );
-//   });
-// }
-
-function getPixel(imgData, index) {
-  var i = index*4, d = imgData.data;
-  return [d[i],d[i+1],d[i+2],d[i+3]] // returns array [R,G,B,A]
-}
-
-// AND/OR
-
-function getPixelXY(imgData, x, y) {
-  return getPixel(imgData, y*imgData.width+x);
-}
-
 const readSegmentation = () => {
   $('#output-image').click(function(e){
     var eventLocation = getEventLocation(this,e);
     var canvas = this.getContext('2d');
-    console.log(eventLocation);
-    var imageData = canvas.getImageData(0, 0, $('#output-image').width(), $('#output-image').height()); 
-    var pixelData = getPixelXY(imageData,eventLocation.x, eventLocation.y); 
-    console.log(pixelData);
-    //console.log(pixelData.data[eventLocation.x,eventLocation.y]);
+    var pixelData = canvas.getImageData(eventLocation.x, eventLocation.y, 1, 1).data; 
     var rgb = [ pixelData[0], pixelData[1], pixelData[2] ];
-    console.log(rgb);
-    //window.alert(rgb);
     findLabel(rgb);
-    //$( "#test" ).text( "pageX: " + cursorX +",pageY: " + cursorY );
   });
 }
 
 const findLabel = (rgbVal) => {
-  
-  // window.alert('hi');
-  // window.alert(rgbVal);
   const labelName = dictRgbLabel[rgbVal];
-  console.log(labelName);
   findonlineImage(labelName);
-  // window.alert(labelName);
 };
-
-
 
 const findonlineImage = (keyword) => {
   let display;
@@ -195,12 +139,6 @@ const findonlineImage = (keyword) => {
       format: "json"
   }).done(function (result, status, xhr) {
       display = result.items[Math.floor(Math.random() * result.items.length)].media.m;
-      // $.each(result.items, function (i, item) {
-      //     savej.push(item.media.m);
-      //     if (i === 20) {
-      //         return false;
-      //     }
-      // });
       toggleInvisible('output-card', true);
       toggleInvisible('legend-card', true);
       const image = document.getElementById('input-image');
@@ -208,39 +146,17 @@ const findonlineImage = (keyword) => {
       image.crossOrigin = 'anonymous';
       runModel(globalBase);
       toggleInvisible('input-card', false);
-      //savej = [];
   }).fail(function (xhr, status, error) {
       alert("Result: " + status + " " + error + " " + xhr.status + " " + xhr.statusText)
   });
-  // var flickerAPI = "https://api.flickr.com/services/feeds/photos_public.gne?format=json&tags=" + keyword;
-  // $.ajax({
-  //   url: flickerAPI,
-  //   dataType: "jsonp", // jsonp
-  //   jsonpCallback: 'jsonFlickrFeed', // add this property
-  //   success: function (result, status, xhr) {
-  //       $.each(result.items, function (i, item) {
-  //           savej.push(item.media.m);
-  //           if (i === 20) {
-  //               return false;
-  //           }
-  //       });
-  //   },
-  //   error: function (xhr, status, error) {
-  //       console.log(xhr)
-  //       alert("Result: " + status + " " + error + " " + xhr.status + " " + xhr.statusText)
-  //   }
-  // });
-  
 };
 
 const displaySegmentationMap = (modelName, deeplabOutput) => {
-  
   const {legend, height, width, segmentationMap} = deeplabOutput;
   const canvas = document.getElementById('output-image');
   const ctx = canvas.getContext('2d');
   toggleInvisible('output-card', false);
   const segmentationMapData = new ImageData(segmentationMap, width, height);
-  
   canvas.style.width = '100%';
   canvas.style.height = '100%';
   canvas.width = width;
@@ -251,7 +167,7 @@ const displaySegmentationMap = (modelName, deeplabOutput) => {
   while (legendList.firstChild) {
     legendList.removeChild(legendList.firstChild);
   }
-  
+
   Object.keys(legend).forEach((label) => {
     const tag = document.createElement('span');
     tag.innerHTML = label;
@@ -267,12 +183,11 @@ const displaySegmentationMap = (modelName, deeplabOutput) => {
     legendList.appendChild(tag);
   });
   toggleInvisible('legend-card', false);
-  console.log(dictRgbLabel);
+
 
   const inputContainer = document.getElementById('input-card');
   inputContainer.scrollIntoView({behavior: 'smooth', block: 'nearest'});
 };
-
 
 const status = (message) => {
   const statusMessage = document.getElementById('status-message');
@@ -281,13 +196,8 @@ const status = (message) => {
 };
 
 const runPrediction = (modelName, input, initialisationStart) => {
-  
-
   deeplab[modelName].then((model) => {
-    console.log('bug2');
-    console.log(input);
     model.segment(input).then((output) => {
-      console.log('bug3');
       displaySegmentationMap(modelName, output);
       status(`Ran in ${
         ((performance.now() - initialisationStart) / 1000).toFixed(2)} s`);
@@ -310,8 +220,6 @@ const runDeeplab = async (modelName) => {
     state.quantizationBytes = quantizationBytes;
   }
   const input = document.getElementById('input-image');
-  //console.log(input);
-  console.log('beforeload');
   if (!input.src || !input.src.length || input.src.length === 0) {
     status('Failed! Please load an image first.');
     return;
@@ -328,7 +236,6 @@ const runDeeplab = async (modelName) => {
   }
   const predictionStart = performance.now();
   if (input.complete && input.naturalHeight !== 0) {
-    console.log('bug1');
     runPrediction(modelName, input, predictionStart);
   } else {
     input.onload = () => {
