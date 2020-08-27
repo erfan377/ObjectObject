@@ -92,6 +92,27 @@ const processImages = (event) => {
   Array.from(files).forEach(processImage);
 };
 
+const findonlineImage = (keyword) => {
+  let display;
+  var flickerAPI = "http://api.flickr.com/services/feeds/photos_public.gne?jsoncallback=?";
+  $.getJSON(flickerAPI, {
+      tags: keyword,
+      tagmode: "any",
+      format: "json"
+  }).done(function (result, status, xhr) {
+      display = result.items[Math.floor(Math.random() * result.items.length)].media.m;
+      toggleInvisible('output-card', true);
+      toggleInvisible('legend-card', true);
+      const image = document.getElementById('input-image');
+      image.src = display;
+      image.crossOrigin = 'anonymous';
+      runModel(globalBase);
+      toggleInvisible('input-card', false);
+  }).fail(function (xhr, status, error) {
+      alert("Result: " + status + " " + error + " " + xhr.status + " " + xhr.statusText)
+  });
+};
+
 const displaySegmentationMap = (modelName, deeplabOutput) => {
   const {legend, height, width, segmentationMap} = deeplabOutput;
   const canvas = document.getElementById('output-image');
