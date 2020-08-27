@@ -27,6 +27,7 @@ import pascalExampleImage from './examples/pascal.jpg';
 const modelNames = ['pascal', 'cityscapes', 'ade20k'];
 const deeplab = {};
 const state = {};
+var dictRgbLabel = {};
 var globalBase = 'pascal';
 
 const deeplabExampleImages = {
@@ -174,7 +175,9 @@ const displaySegmentationMap = (modelName, deeplabOutput) => {
   Object.keys(legend).forEach((label) => {
     const tag = document.createElement('span');
     tag.innerHTML = label;
-    const [red, green, blue] = legend[label];
+    var labelColor = legend[label]; 
+    const [red, green, blue] = labelColor;
+    dictRgbLabel[labelColor] = label;
     tag.classList.add('column');
     tag.style.backgroundColor = `rgb(${red}, ${green}, ${blue})`;
     tag.style.padding = '1em';
